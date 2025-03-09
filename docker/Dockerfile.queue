@@ -1,0 +1,17 @@
+FROM sail-8.2/app
+
+# Cài đặt supervisor
+RUN apt-get update && apt-get install -y supervisor
+
+# Tạo thư mục cấu hình cho supervisor
+RUN mkdir -p /etc/supervisor/conf.d
+
+# Sao chép file cấu hình supervisor
+COPY docker/supervisor/laravel-worker.conf /etc/supervisor/conf.d/laravel-worker.conf
+
+# Sửa quyền truy cập thư mục logs
+RUN mkdir -p /var/www/html/storage/logs && \
+    chmod -R 777 /var/www/html/storage
+
+# Thiết lập command khi container chạy
+CMD ["/usr/bin/supervisord", "-n", "-c", "/etc/supervisor/supervisord.conf"]

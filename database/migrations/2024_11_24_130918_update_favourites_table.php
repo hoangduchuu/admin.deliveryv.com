@@ -13,8 +13,14 @@ return new class extends Migration
     {
         Schema::table('favourites', function (Blueprint $table) {
             $table->foreignId('product_id')->nullable()->change();
-            $table->foreignId('vendor_id')->nullable()->constrained()->onDelete('cascade');
         });
+
+        // Only add vendor_id if it doesn't exist
+        if (!Schema::hasColumn('favourites', 'vendor_id')) {
+            Schema::table('favourites', function (Blueprint $table) {
+                $table->foreignId('vendor_id')->nullable()->constrained()->onDelete('cascade');
+            });
+        }
     }
 
     /**
@@ -22,9 +28,14 @@ return new class extends Migration
      */
     public function down(): void
     {
-        $table->foreignId('product_id')->constrained()->onDelete('cascade')->change();
+        Schema::table('favourites', function (Blueprint $table) {
+            $table->foreignId('product_id')->constrained()->onDelete('cascade')->change();
 
-        $table->dropForeign(['vendor_id']);
-        $table->dropColumn('vendor_id');
+            // Only if we have foreign key constraint
+            if (Schema::hasColumn('favourites', 'vendor_id')) {
+                $table->dropForeign(['vendor_id']);
+                $table->dropColumn('vendor_id');
+            }
+        });
     }
 };
